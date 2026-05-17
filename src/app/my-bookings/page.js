@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useAuth, API_URL } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import toast from 'react-hot-toast';
-import { Calendar, Users, ShieldCheck, MapPin, Sparkles, PlusCircle } from 'lucide-react';
+import { Calendar, Users, ShieldCheck, MapPin, Sparkles, PlusCircle, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -13,6 +13,11 @@ export default function MyBookings() {
   const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Cancellation States
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   async function fetchMyBookings() {
     setLoading(true);
@@ -33,6 +38,24 @@ export default function MyBookings() {
       fetchMyBookings();
     }
   }, [user]);
+
+  const handleCancelBooking = async () => {
+    if (!bookingToDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await axios.delete(`${API_URL}/bookings/${bookingToDelete._id}`);
+      if (res.data.success) {
+        toast.success('Booking cancelled successfully! Car listing count updated.');
+        setBookings(bookings.filter((b) => b._id !== bookingToDelete._id));
+        setDeleteModalOpen(false);
+        setBookingToDelete(null);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel booking.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Format date utility
   const formatDate = (dateString) => {
@@ -136,11 +159,18 @@ export default function MyBookings() {
                   )}
 
                   {/* Booking ID and details indicator */}
-                  <div className="pt-2 border-t border-card-border flex justify-between items-center text-[10px] text-muted font-mono">
+                  <div className="pt-3 border-t border-card-border flex justify-between items-center text-[10px] text-muted font-mono">
                     <span>ID: #{booking._id.substr(-8).toUpperCase()}</span>
-                    <span className="flex items-center text-accent font-bold font-sans text-xs">
-                      <Sparkles size={12} className="mr-1 animate-pulse" /> Trip Confirmed
-                    </span>
+                    <button
+                      onClick={() => {
+                        setBookingToDelete(booking);
+                        setDeleteModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 rounded-lg border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 font-bold font-sans text-xs flex items-center space-x-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    >
+                      <Trash2 size={12} />
+                      <span>Cancel</span>
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -148,6 +178,42 @@ export default function MyBookings() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteModalOpen(false)} />
+          
+          <div className="relative w-full max-w-md rounded-3xl bg-card border border-card-border p-6 shadow-2xl z-10 animate-in zoom-in-95 duration-200 text-center space-y-4">
+            <div className="inline-flex p-4 rounded-full bg-red-500/10 text-red-500">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-foreground">Cancel Reservation?</h3>
+            <p className="text-muted text-xs px-4 leading-relaxed">
+              Are you sure you want to cancel your rental booking for <strong className="text-foreground">{bookingToDelete?.carName}</strong>? This action will restore availability and booking counter.
+            </p>
+            <div className="flex space-x-3 pt-2">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-card-border hover:bg-card-border/20 text-xs font-bold transition-all text-foreground"
+              >
+                Keep Booking
+              </button>
+              <button
+                onClick={handleCancelBooking}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 px-4 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-500/15 active:scale-95 transition-all flex justify-center items-center cursor-pointer"
+              >
+                {isDeleting ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  'Yes, Cancel'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }

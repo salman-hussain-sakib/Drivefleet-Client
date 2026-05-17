@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 import { Mail, Lock, LogIn, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Login() {
   const { login, googleLogin, user } = useAuth();
@@ -24,6 +25,79 @@ export default function Login() {
       router.push('/');
     }
   }, [user, router]);
+
+  // Load official Google Identity Services SDK dynamically
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    script.onload = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '103984592032-47q0c6gct094s0a6q542l8768u8o4vda.apps.googleusercontent.com', // Dynamically read your Client ID from .env.local
+          callback: handleCredentialResponse,
+          ux_mode: 'popup',
+        });
+
+        // Render the official, real Google Sign-In Button natively
+        window.google.accounts.id.renderButton(
+          document.getElementById('googleSignInBtn'),
+          { 
+            theme: 'filled_blue', 
+            size: 'large', 
+            text: 'signin_with',
+            shape: 'pill',
+            width: '380'
+          }
+        );
+      }
+    };
+
+    return () => {
+      const scriptElem = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (scriptElem && scriptElem.parentNode) {
+        scriptElem.parentNode.removeChild(scriptElem);
+      }
+    };
+  }, []);
+
+  // Securely decode the real Google JWT token containing your real accounts
+  const handleCredentialResponse = async (response) => {
+    const token = response.credential;
+    toast.loading('Connecting securely with Google...', { id: 'googleAuth' });
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window.atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      
+      const decoded = JSON.parse(jsonPayload);
+      
+      toast.loading('Saving real Google account in MongoDB...', { id: 'googleAuth' });
+      
+      // Save your real profile in your real MongoDB Atlas
+      const res = await googleLogin(
+        decoded.name || 'Google User',
+        decoded.email,
+        decoded.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'
+      );
+      
+      if (res.success) {
+        toast.success(`Logged in successfully! Welcome, ${res.user.name}.`, { id: 'googleAuth' });
+        router.push('/');
+      }
+    } catch (err) {
+      console.error('Google Sign-in Error:', err);
+      toast.error('Google authentication failed. Please try again.', { id: 'googleAuth' });
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -51,74 +125,67 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      toast.loading('Connecting with Google...', { id: 'googleAuth' });
-      // Simulate Google auth
-      const mockGoogleUser = {
-        name: 'Sakib Ahmed',
-        email: 'sakib@gmail.com',
-        photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
-      };
-
-      const res = await googleLogin(mockGoogleUser.name, mockGoogleUser.email, mockGoogleUser.photoURL);
-      if (res.success) {
-        toast.success(`Welcome, ${res.user.name}! Connected via Google.`, { id: 'googleAuth' });
-        router.push('/');
-      }
-    } catch (err) {
-      toast.error(err.message || 'Google Login failed.', { id: 'googleAuth' });
-    }
-  };
-
   return (
-    <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-background to-card-border/20">
-      <div className="max-w-md w-full space-y-8 glass-panel p-8 rounded-3xl shadow-xl border border-card-border">
+    <div className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-background to-accent/5 relative overflow-hidden">
+      {/* Ambient glowing circles */}
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-accent/10 blur-3xl -z-10 animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-blue-500/5 blur-3xl -z-10 animate-pulse duration-300" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="max-w-md w-full space-y-8 bg-card/65 dark:bg-card/45 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-card-border/80 neon-border-hover relative"
+      >
+        {/* Decorative corner glows */}
+        <div className="absolute -top-px -left-px w-20 h-20 rounded-tl-3xl bg-gradient-to-br from-accent/20 to-transparent pointer-events-none" />
+        <div className="absolute -bottom-px -right-px w-20 h-20 rounded-br-3xl bg-gradient-to-tl from-blue-500/10 to-transparent pointer-events-none" />
+
         {/* Header */}
-        <div className="text-center">
-          <div className="inline-flex p-3 rounded-2xl bg-accent/10 text-accent mb-4">
-            <LogIn size={28} />
+        <div className="text-center space-y-2">
+          <div className="inline-flex p-3.5 rounded-2xl bg-gradient-to-r from-accent/15 to-blue-500/15 text-accent shadow-inner border border-accent/20">
+            <LogIn size={26} className="animate-pulse" />
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
+          <h2 className="text-3xl font-black tracking-tight text-foreground bg-gradient-to-r from-foreground via-foreground to-muted bg-clip-text text-transparent">
             Welcome Back
           </h2>
-          <p className="mt-2 text-sm text-muted">
-            Log in to manage bookings and listed cars
+          <p className="text-xs sm:text-sm text-muted font-medium">
+            Access your secure dashboard to manage listings and bookings
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-5 mt-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             {/* Email Input */}
-            <div>
-              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="block text-xs font-extrabold uppercase tracking-wider text-muted/90">
                 Email Address
               </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted">
-                  <Mail size={18} />
+              <div className="relative group">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted group-focus-within:text-accent transition-colors">
+                  <Mail size={16} />
                 </span>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   required
-                  placeholder="john@example.com"
+                  placeholder="name@domain.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-4 py-3 rounded-xl border border-card-border bg-card text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all duration-200 text-foreground"
+                  className="block w-full pl-11 pr-4 py-3 rounded-xl border border-card-border bg-card/85 text-sm focus:border-accent focus:ring-4 focus:ring-accent/15 outline-none transition-all duration-300 text-foreground font-medium shadow-sm hover:border-accent/40"
                 />
               </div>
             </div>
 
             {/* Password Input */}
-            <div>
-              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="block text-xs font-extrabold uppercase tracking-wider text-muted/90">
                 Password
               </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted">
-                  <Lock size={18} />
+              <div className="relative group">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted group-focus-within:text-accent transition-colors">
+                  <Lock size={16} />
                 </span>
                 <input
                   id="password"
@@ -128,7 +195,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-4 py-3 rounded-xl border border-card-border bg-card text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all duration-200 text-foreground"
+                  className="block w-full pl-11 pr-4 py-3 rounded-xl border border-card-border bg-card/85 text-sm focus:border-accent focus:ring-4 focus:ring-accent/15 outline-none transition-all duration-300 text-foreground font-medium shadow-sm hover:border-accent/40"
                 />
               </div>
             </div>
@@ -138,58 +205,37 @@ export default function Login() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 rounded-xl text-white font-semibold text-sm bg-accent hover:bg-accent-hover shadow-md shadow-accent/20 transition-all duration-200 active:scale-95 flex justify-center items-center cursor-pointer"
+              className="w-full py-3.5 px-4 rounded-xl text-white font-extrabold text-sm bg-gradient-to-r from-accent to-blue-500 hover:from-accent-hover hover:to-blue-600 shadow-md shadow-accent/15 hover:shadow-lg hover:shadow-accent/25 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 flex justify-center items-center cursor-pointer"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                'Sign In'
+                <>
+                  <span>Sign In Securely</span>
+                  <LogIn size={16} className="ml-2" />
+                </>
               )}
             </button>
           </div>
         </form>
 
         <div className="relative flex items-center justify-center my-6">
-          <div className="absolute w-full border-t border-card-border"></div>
-          <span className="relative bg-card px-4 text-xs font-semibold tracking-wider text-muted uppercase">Or continue with</span>
+          <div className="absolute w-full border-t border-card-border/80"></div>
+          <span className="relative bg-card px-4 text-[10px] font-extrabold tracking-widest text-muted/80 uppercase">Or Continue With</span>
         </div>
 
-        {/* Google Login Button */}
-        <div>
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center px-4 py-3 rounded-xl border border-card-border bg-card text-sm font-semibold hover:bg-card-border/20 active:scale-98 transition-all duration-200 text-foreground"
-          >
-            <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24" width="24" height="24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Sign in with Google
-          </button>
+        {/* Real Native Google Sign-In Button */}
+        <div className="w-full flex justify-center overflow-hidden rounded-xl">
+          <div id="googleSignInBtn" className="w-full flex justify-center"></div>
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted">
+        <p className="mt-6 text-center text-xs sm:text-sm text-muted font-medium">
           Don't have an account?{' '}
-          <Link href="/register" className="font-semibold text-accent hover:text-accent-hover transition-colors">
-            Register Page
+          <Link href="/register" className="font-extrabold text-accent hover:text-accent-hover transition-colors underline decoration-accent/35">
+            Register here
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

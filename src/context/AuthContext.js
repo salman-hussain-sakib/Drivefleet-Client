@@ -13,7 +13,7 @@ export const API_URL = 'http://localhost:5000/api';
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState('dark'); // Sleek dark theme by default
+  const [theme, setTheme] = useState('light'); // Default to light theme
 
   // Fetch current profile on mount (reloads protection)
   useEffect(() => {
@@ -32,16 +32,45 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, []);
 
-  // Sync and persist theme
+  // Sync and persist theme (default light, adaptive system dark mode)
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    setTheme(savedTheme);
+    const savedTheme = localStorage.getItem('theme');
     const root = window.document.documentElement;
-    if (savedTheme === 'dark') {
-      root.classList.add('dark');
+
+    const applyTheme = (themeName) => {
+      setTheme(themeName);
+      if (themeName === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    };
+
+    if (savedTheme) {
+      applyTheme(savedTheme);
     } else {
-      root.classList.remove('dark');
+      // Adaptive system dark mode: auto-detect user's device/PC/mobile theme
+      const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(systemPrefersDark ? 'dark' : 'light');
     }
+
+    // Dynamic real-time system/device theme change listener
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = (e) => {
+      if (!localStorage.getItem('theme')) {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      }
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -107,8 +136,20 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (name, email, photoURL, dateOfBirth, phone) => {
+    try {
+      const res = await axios.put(`${API_URL}/auth/update-profile`, { name, email, photoURL, dateOfBirth, phone });
+      if (res.data.success && res.data.user) {
+        setUser(res.data.user);
+      }
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.message || 'Profile update failed');
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, theme, toggleTheme, register, login, googleLogin, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, theme, toggleTheme, register, login, googleLogin, logout, updateProfile, setUser }}>
       {children}
     </AuthContext.Provider>
   );

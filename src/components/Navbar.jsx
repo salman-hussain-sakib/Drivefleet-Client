@@ -2,15 +2,24 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Menu, X, Car, Sun, Moon, LogOut, ChevronDown, User, PlusCircle, Briefcase, List } from 'lucide-react';
+import { Menu, X, Car, Sun, Moon, LogOut, ChevronDown, User, PlusCircle, Briefcase, List, Settings } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout, theme, toggleTheme } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [desktopImageError, setDesktopImageError] = useState(false);
+  const [mobileImageError, setMobileImageError] = useState(false);
+
+  // Reset image error states if user changes
+  React.useEffect(() => {
+    setDesktopImageError(false);
+    setMobileImageError(false);
+  }, [user]);
 
   const isActive = (path) => pathname === path;
 
@@ -30,7 +39,16 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2 group">
+            <Link 
+              href="/" 
+              onClick={(e) => {
+                if (pathname === '/') {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
+              className="flex items-center space-x-2 group"
+            >
               <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center text-white shadow-md shadow-accent/20 group-hover:scale-105 transition-transform duration-200">
                 <Car size={22} className="group-hover:rotate-6 transition-transform duration-200" />
               </div>
@@ -78,11 +96,19 @@ export default function Navbar() {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center space-x-2 p-1.5 rounded-xl border border-card-border hover:bg-card-border/20 transition-all duration-200"
                 >
-                  <img
-                    src={user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-lg object-cover"
-                  />
+                  {user.photoURL && !desktopImageError ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user.name}
+                      referrerPolicy="no-referrer"
+                      onError={() => setDesktopImageError(true)}
+                      className="w-8 h-8 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent text-xs font-black select-none">
+                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                  )}
                   <span className="text-sm font-semibold max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
                   <ChevronDown size={16} className={`text-muted transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -92,9 +118,22 @@ export default function Navbar() {
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
                     <div className="absolute right-0 mt-2 w-56 rounded-xl border border-card-border bg-card shadow-lg ring-1 ring-black/5 focus:outline-none z-20 py-1 divide-y divide-card-border overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                      <div className="px-4 py-3">
-                        <p className="text-xs text-muted">Signed in as</p>
-                        <p className="text-sm font-semibold truncate text-foreground">{user.email}</p>
+                      {/* Profile Header Removed as requested */}
+                      <div className="py-1">
+                        <Link
+                          href="/profile"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm hover:bg-card-border/40 transition-colors text-foreground font-semibold"
+                        >
+                          <User size={16} className="mr-3 text-muted" /> My Profile
+                        </Link>
+                        <Link
+                          href="/settings"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm hover:bg-card-border/40 transition-colors text-foreground font-semibold"
+                        >
+                          <Settings size={16} className="mr-3 text-muted" /> Settings
+                        </Link>
                       </div>
                       <div className="py-1">
                         <Link
@@ -121,11 +160,12 @@ export default function Navbar() {
                       </div>
                       <div className="py-1">
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             setDropdownOpen(false);
-                            logout();
+                            await logout();
+                            router.push('/');
                           }}
-                          className="flex w-full items-center px-4 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                          className="flex w-full items-center px-4 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition-colors font-semibold"
                         >
                           <LogOut size={16} className="mr-3" /> Log out
                         </button>
@@ -135,12 +175,20 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold shadow-md hover:bg-accent-hover active:scale-95 transition-all duration-200"
-              >
-                Login
-              </Link>
+              <div className="flex items-center space-x-2">
+                <Link
+                  href="/register"
+                  className="px-4 py-2.5 rounded-xl border border-card-border hover:bg-card-border/20 text-muted hover:text-foreground text-sm font-semibold transition-all duration-200"
+                >
+                  Register
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold shadow-md hover:bg-accent-hover hover:shadow-lg hover:shadow-accent/25 active:scale-95 transition-all duration-200"
+                >
+                  Login
+                </Link>
+              </div>
             )}
           </div>
 
@@ -185,21 +233,42 @@ export default function Navbar() {
           {user ? (
             <div className="pt-4 pb-3 border-t border-card-border px-4 divide-y divide-card-border">
               <div className="flex items-center space-x-3 pb-3">
-                <img
-                  src={user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
-                  alt={user.name}
-                  className="w-10 h-10 rounded-lg object-cover"
-                />
+                {user.photoURL && !mobileImageError ? (
+                  <img
+                    src={user.photoURL}
+                    alt={user.name}
+                    referrerPolicy="no-referrer"
+                    onError={() => setMobileImageError(true)}
+                    className="w-10 h-10 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center text-accent text-sm font-black select-none">
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
                 <div>
                   <div className="text-base font-semibold text-foreground">{user.name}</div>
-                  <div className="text-sm text-muted">{user.email}</div>
                 </div>
               </div>
               <div className="py-2 space-y-1">
                 <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-3 py-2.5 rounded-lg text-base font-semibold text-muted hover:text-foreground hover:bg-card-border/30"
+                >
+                  <User size={18} className="mr-3" /> My Profile
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-3 py-2.5 rounded-lg text-base font-semibold text-muted hover:text-foreground hover:bg-card-border/30"
+                >
+                  <Settings size={18} className="mr-3" /> Settings
+                </Link>
+                <Link
                   href="/add-car"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center px-3 py-2.5 rounded-lg text-base font-medium text-muted hover:text-foreground hover:bg-card-border/30"
+                  className="flex items-center px-3 py-2.5 rounded-lg text-base font-medium text-muted hover:text-foreground hover:bg-card-border/30 border-t border-card-border/40 pt-2"
                 >
                   <PlusCircle size={18} className="mr-3" /> Add Car
                 </Link>
@@ -220,9 +289,10 @@ export default function Navbar() {
               </div>
               <div className="pt-2">
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setMobileMenuOpen(false);
-                    logout();
+                    await logout();
+                    router.push('/');
                   }}
                   className="flex w-full items-center px-3 py-2.5 rounded-lg text-base font-medium text-red-500 hover:bg-red-500/10 transition-colors"
                 >
@@ -231,7 +301,14 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="pt-4 pb-3 border-t border-card-border px-4">
+            <div className="pt-4 pb-3 border-t border-card-border px-4 space-y-2">
+              <Link
+                href="/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full text-center px-4 py-2.5 rounded-lg border border-card-border text-muted hover:text-foreground font-semibold hover:bg-card-border/20 transition-all"
+              >
+                Register
+              </Link>
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}

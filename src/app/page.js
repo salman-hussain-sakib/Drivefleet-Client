@@ -5,7 +5,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { API_URL } from '@/context/AuthContext';
-import { Car, Fuel, Milestone, Users, ArrowRight, ShieldCheck, HeartHandshake, Sparkles, Trophy, Star } from 'lucide-react';
+import { Car, Fuel, Milestone, Users, ArrowRight, ShieldCheck, HeartHandshake, Disc, Sparkles, Trophy, Star, MapPin } from 'lucide-react';
 
 export default function Home() {
   const [cars, setCars] = useState([]);
@@ -92,7 +92,7 @@ export default function Home() {
               className="space-y-6 text-left"
             >
               <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full border border-accent/20 bg-accent/5 text-xs font-semibold text-accent uppercase tracking-wider">
-                <Sparkles size={12} className="animate-spin duration-3000" />
+                <Disc size={12} className="animate-spin duration-3000" />
                 <span>Next-Gen Car Rentals</span>
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-foreground">
@@ -162,64 +162,84 @@ export default function Home() {
             {cars.map((car) => (
               <motion.div
                 key={car._id}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col bg-card border border-card-border rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:border-accent/40"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="group flex flex-col bg-card/65 dark:bg-card/45 backdrop-blur-md border border-card-border rounded-3xl overflow-hidden shadow-md hover:shadow-2xl hover:border-accent/40 transition-all duration-300 neon-border-hover"
               >
                 {/* Car Image Wrapper */}
-                <div className="relative h-48 w-full bg-card-border/10 overflow-hidden">
+                <div className="relative h-52 w-full bg-card-border/10 overflow-hidden">
                   <img
                     src={car.image}
                     alt={car.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  <div className="absolute top-4 right-4 px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider bg-card/80 text-accent glass-panel">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  {/* Availability Badge */}
+                  <div className="absolute top-4 left-4">
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-extrabold uppercase tracking-wider shadow-md backdrop-blur-md ${
+                      car.availability === 'Available'
+                        ? 'bg-green-500/90 text-white'
+                        : 'bg-red-500/90 text-white'
+                    }`}>
+                      <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 ${
+                        car.availability === 'Available' ? 'bg-white animate-ping' : 'bg-white'
+                      }`} />
+                      {car.availability || 'Available'}
+                    </span>
+                  </div>
+
+                  {/* Type Badge */}
+                  <div className="absolute top-4 right-4 px-3 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-card/90 dark:bg-slate-900/90 text-accent glass-panel shadow-sm">
                     {car.type}
                   </div>
                 </div>
 
                 {/* Car details info */}
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-5">
                   <div className="space-y-2">
                     <div className="flex justify-between items-start">
-                      <h3 className="text-lg font-bold text-foreground truncate max-w-[200px]" title={car.name}>
+                      <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-accent transition-colors truncate max-w-[200px]" title={car.name}>
                         {car.name}
                       </h3>
                       <div className="text-right">
-                        <span className="text-xl font-extrabold text-accent">${car.price}</span>
-                        <span className="text-xs text-muted block">/ day</span>
+                        <span className="text-2xl font-black bg-gradient-to-r from-accent to-blue-500 bg-clip-text text-transparent">${car.price}</span>
+                        <span className="text-xs text-muted block font-semibold">/ day</span>
                       </div>
                     </div>
-                    <p className="text-xs text-muted truncate">{car.location}</p>
+                    <div className="flex items-center space-x-1.5 text-xs text-muted">
+                      <MapPin size={13} className="text-accent" />
+                      <span className="truncate">{car.location}</span>
+                    </div>
                   </div>
 
-                  {/* Specifications grid */}
-                  <div className="grid grid-cols-3 gap-2 py-3 border-y border-card-border text-xs text-muted">
-                    <div className="flex items-center space-x-1.5 justify-center">
+                  {/* Specifications grid (Premium pill style) */}
+                  <div className="grid grid-cols-3 gap-2.5 py-3.5 border-y border-card-border text-xs text-muted">
+                    <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-card-border/20 dark:bg-card-border/10 space-y-1">
                       <Users size={14} className="text-accent" />
-                      <span>{car.seats} Seats</span>
+                      <span className="font-bold text-foreground text-[10px]">{car.seats} Seats</span>
                     </div>
-                    <div className="flex items-center space-x-1.5 justify-center border-x border-card-border">
+                    <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-card-border/20 dark:bg-card-border/10 space-y-1">
                       <Fuel size={14} className="text-accent" />
-                      <span>Hybrid</span>
+                      <span className="font-bold text-foreground text-[10px]">Hybrid</span>
                     </div>
-                    <div className="flex items-center space-x-1.5 justify-center">
+                    <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-card-border/20 dark:bg-card-border/10 space-y-1">
                       <Milestone size={14} className="text-accent" />
-                      <span>Auto</span>
+                      <span className="font-bold text-foreground text-[10px]">Auto</span>
                     </div>
                   </div>
 
                   {/* Bottom Controls */}
                   <div className="flex justify-between items-center pt-2">
-                    <span className="text-xs font-semibold text-muted">
-                      {car.booking_count || 0} Bookings
+                    <span className="text-xs font-semibold text-muted bg-card-border/30 dark:bg-card-border/20 px-2.5 py-1.5 rounded-lg">
+                      🔥 {car.booking_count || 0} Bookings
                     </span>
                     <Link
                       href={`/cars/${car._id}`}
-                      className="px-4 py-2 rounded-xl bg-accent/10 text-accent hover:bg-accent hover:text-white text-xs font-bold transition-all duration-200 flex items-center space-x-1"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-accent to-blue-500 hover:from-accent-hover hover:to-blue-600 text-white text-xs font-extrabold shadow-md shadow-accent/15 hover:shadow-lg hover:shadow-accent/25 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 flex items-center space-x-1.5"
                     >
-                      <span>View Details</span>
-                      <ArrowRight size={12} />
+                      <span>Details</span>
+                      <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
                   </div>
                 </div>
