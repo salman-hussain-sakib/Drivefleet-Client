@@ -8,7 +8,7 @@ const AuthContext = createContext();
 
 // Enforce credentials transport globally for cross-origin session cookies
 axios.defaults.withCredentials = true;
-export const API_URL = 'http://localhost:5000/api';
+export const API_URL = 'https://drivefleet-server.vercel.app/api';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
