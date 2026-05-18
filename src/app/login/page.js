@@ -67,7 +67,7 @@ export default function Login() {
   // Securely decode the real Google JWT token containing your real accounts
   const handleCredentialResponse = async (response) => {
     const token = response.credential;
-    toast.loading('Connecting securely with Google...', { id: 'googleAuth' });
+    toast.loading('Connecting with Google...', { id: 'googleAuth' });
     try {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -80,7 +80,7 @@ export default function Login() {
       
       const decoded = JSON.parse(jsonPayload);
       
-      toast.loading('Saving real Google account in MongoDB...', { id: 'googleAuth' });
+      toast.loading('Logging in...', { id: 'googleAuth' });
       
       // Save your real profile in your real MongoDB Atlas
       const res = await googleLogin(
