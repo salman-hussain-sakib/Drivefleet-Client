@@ -35,7 +35,7 @@ export default function Profile() {
 
   if (loading || !user) {
     return (
-      <div className="flex-1 flex justify-center items-center py-32 bg-slate-950">
+      <div className="flex-1 flex justify-center items-center py-32 bg-background">
         <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -70,7 +70,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="flex-1 min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/20 relative overflow-hidden">
+    <div className="flex-1 min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-white to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/20 relative overflow-hidden text-foreground">
       {/* Glow effects */}
       <div className="absolute top-1/4 left-1/3 w-96 h-96 rounded-full bg-accent/5 blur-3xl -z-10 animate-pulse duration-500" />
       <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-blue-500/5 blur-3xl -z-10 animate-pulse duration-300" />
@@ -101,7 +101,7 @@ export default function Profile() {
             {/* Avatar & Photo Trigger */}
             <div className="relative -mt-20 mb-6 flex justify-between items-end">
               <div className="relative group">
-                <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-card-border shadow-2xl bg-slate-900 relative">
+                <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-card-border shadow-2xl bg-card relative">
                   {user.photoURL && !hasImageError ? (
                     <img
                       src={user.photoURL}
