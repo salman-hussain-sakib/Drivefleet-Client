@@ -70,7 +70,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="flex-1 min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-white to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/20 relative overflow-hidden text-foreground">
+    <div className="flex-1 min-h-screen py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
       {/* Glow effects */}
       <div className="absolute top-1/4 left-1/3 w-96 h-96 rounded-full bg-accent/5 blur-3xl -z-10 animate-pulse duration-500" />
       <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-blue-500/5 blur-3xl -z-10 animate-pulse duration-300" />
