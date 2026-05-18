@@ -10,6 +10,17 @@ const AuthContext = createContext();
 axios.defaults.withCredentials = true;
 export const API_URL = 'https://drivefleet-server.vercel.app/api';
 
+// Intercept all requests and attach Bearer token if available
+axios.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -106,6 +117,7 @@ export function AuthProvider({ children }) {
       const res = await axios.post(`${API_URL}/auth/login`, { email, password });
       if (res.data.success && res.data.user) {
         setUser(res.data.user);
+        if (res.data.token) localStorage.setItem('token', res.data.token);
       }
       return res.data;
     } catch (err) {
@@ -118,6 +130,7 @@ export function AuthProvider({ children }) {
       const res = await axios.post(`${API_URL}/auth/google-login`, { name, email, photoURL });
       if (res.data.success && res.data.user) {
         setUser(res.data.user);
+        if (res.data.token) localStorage.setItem('token', res.data.token);
       }
       return res.data;
     } catch (err) {
@@ -129,6 +142,7 @@ export function AuthProvider({ children }) {
     try {
       await axios.post(`${API_URL}/auth/logout`);
       setUser(null);
+      localStorage.removeItem('token');
       toast.success('Logged out successfully');
     } catch (err) {
       console.error('Logout error', err);
@@ -141,6 +155,7 @@ export function AuthProvider({ children }) {
       const res = await axios.put(`${API_URL}/auth/update-profile`, { name, email, photoURL, dateOfBirth, phone });
       if (res.data.success && res.data.user) {
         setUser(res.data.user);
+        if (res.data.token) localStorage.setItem('token', res.data.token);
       }
       return res.data;
     } catch (err) {
