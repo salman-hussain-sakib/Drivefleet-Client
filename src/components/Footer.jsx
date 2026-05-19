@@ -81,7 +81,9 @@ export default function Footer() {
             <div className="flex space-x-4">
               {/* Facebook Inline SVG */}
               <a
-                href="#"
+                href="https://www.facebook.com/SAKIB.SALMAN.HUSSAIN"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-lg bg-card-border/20 hover:bg-accent/10 hover:text-accent transition-colors text-muted"
                 aria-label="Facebook"
               >
@@ -92,7 +94,9 @@ export default function Footer() {
 
               {/* Instagram Inline SVG */}
               <a
-                href="#"
+                href="https://www.instagram.com/hussainsakib.dm"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-lg bg-card-border/20 hover:bg-accent/10 hover:text-accent transition-colors text-muted"
                 aria-label="Instagram"
               >
@@ -105,7 +109,9 @@ export default function Footer() {
 
               {/* LinkedIn Inline SVG */}
               <a
-                href="#"
+                href="https://www.linkedin.com/in/salmanhussainsakib/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-lg bg-card-border/20 hover:bg-accent/10 hover:text-accent transition-colors text-muted"
                 aria-label="LinkedIn"
               >
@@ -118,7 +124,9 @@ export default function Footer() {
 
               {/* Custom rebranding X logo */}
               <a
-                href="#"
+                href="https://x.com/sakibsalmanh"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-lg bg-card-border/20 hover:bg-accent/10 hover:text-accent transition-colors text-muted"
                 aria-label="X (formerly Twitter)"
               >
