@@ -59,15 +59,15 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start text-sm text-muted">
                 <MapPin size={16} className="mr-2 text-accent shrink-0 mt-0.5" />
-                <span>123 Elite Boulevard, Suite 500, Dhaka, Bangladesh</span>
+                <span>Bangladesh, Sylhet</span>
               </li>
               <li className="flex items-center text-sm text-muted">
                 <Phone size={16} className="mr-2 text-accent shrink-0" />
-                <span>+880 1712-345678</span>
+                <span>01700963008</span>
               </li>
               <li className="flex items-center text-sm text-muted">
                 <Mail size={16} className="mr-2 text-accent shrink-0" />
-                <span>support@drivefleet.com</span>
+                <span>sakibsalmanh@gmail.com</span>
               </li>
             </ul>
           </div>
