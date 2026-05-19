@@ -5,7 +5,7 @@
 ---
 
 ## 🔗 Live Application URL
-- **Live Deployment:** [https://drivefleet.vercel.app](https://drivefleet.vercel.app) *(Simulated)*
+- **Live Deployment:** [https://drivefleet-client.vercel.app](https://drivefleet-client.vercel.app)
 - **Local API Base:** `http://localhost:5000/api`
 
 ---
